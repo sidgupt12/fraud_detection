@@ -1,0 +1,227 @@
+@import url("https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-bg text-ink font-sans antialiased;
+    background-color: #0d0d0e;
+    background-image:
+      /* faint warm wash from top-right */
+      radial-gradient(
+        900px 600px at 100% 0%,
+        rgba(216, 196, 163, 0.05),
+        transparent 60%
+      ),
+      /* subtle warm wash from bottom-left */
+      radial-gradient(
+        700px 500px at 0% 100%,
+        rgba(155, 133, 196, 0.035),
+        transparent 60%
+      );
+    background-attachment: fixed;
+    overflow-x: hidden;
+  }
+
+  ::selection {
+    background: rgba(216, 196, 163, 0.25);
+    color: #f4f1ea;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: rgba(20, 20, 22, 0.4);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.16);
+    background-clip: padding-box;
+    border: 2px solid transparent;
+  }
+}
+
+@layer components {
+  .glass-panel {
+    @apply rounded-xl border border-line bg-surface/60 backdrop-blur-md shadow-card;
+  }
+
+  .stat-pill {
+    @apply rounded-md border border-line bg-bg-800/80 px-2 py-0.5 font-mono text-[11px] uppercase tracking-wider text-ink-muted;
+  }
+
+  .terminal-line {
+    @apply font-mono text-[12.5px] leading-relaxed text-ink-muted;
+  }
+
+  .grid-bg {
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Subtle paper-grain noise — used as overlay on the page */
+  .grain {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.95   0 0 0 0 0.92   0 0 0 0 0.88   0 0 0 0.06 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  }
+
+  .serif {
+    font-family:
+      "Fraunces", "Sora", ui-serif, Georgia, "Times New Roman", serif;
+    font-feature-settings:
+      "ss01" on,
+      "ss02" on,
+      "liga" on;
+  }
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .text-shadow-glow {
+    text-shadow:
+      0 0 12px rgba(0, 229, 255, 0.5),
+      0 0 32px rgba(0, 229, 255, 0.2);
+  }
+
+  .bg-grid-quiet {
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 64px 64px;
+  }
+
+  .mask-fade-y {
+    mask-image: linear-gradient(
+      180deg,
+      transparent,
+      black 12%,
+      black 88%,
+      transparent
+    );
+    -webkit-mask-image: linear-gradient(
+      180deg,
+      transparent,
+      black 12%,
+      black 88%,
+      transparent
+    );
+  }
+}
+
+/* Recharts custom styling */
+.recharts-default-tooltip {
+  background-color: rgba(20, 20, 22, 0.96) !important;
+  border: 1px solid rgba(255, 255, 255, 0.10) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5) !important;
+  font-family:
+    "JetBrains Mono", ui-monospace, monospace !important;
+  font-size: 12px !important;
+}
+
+.recharts-tooltip-label {
+  color: #d8c4a3 !important;
+  font-weight: 600 !important;
+}
+
+.recharts-cartesian-axis-tick-value {
+  fill: #9c998f !important;
+  font-family:
+    "JetBrains Mono", ui-monospace, monospace !important;
+  font-size: 11px !important;
+}
+
+.recharts-legend-item-text {
+  color: #c8c5be !important;
+  font-size: 12px !important;
+}
+
+.recharts-cartesian-grid line {
+  stroke: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Print styles — used when the user picks "Print / PDF" on a report page. */
+@media print {
+  body {
+    background: #fff !important;
+    color: #1c1b18 !important;
+  }
+  /* Hide all chrome — only the audit content prints. */
+  header,
+  footer,
+  .print\:hidden,
+  [aria-hidden="true"] {
+    display: none !important;
+  }
+  main {
+    max-width: 100% !important;
+    padding: 0 !important;
+  }
+  /* Cards become flat, paper-like. */
+  .bg-surface\/55,
+  .bg-surface\/40,
+  .bg-surface\/60,
+  .bg-surface,
+  [class*="bg-bg-"] {
+    background: #fff !important;
+    color: #1c1b18 !important;
+  }
+  [class*="border-line"],
+  [class*="border-cyan"],
+  [class*="border-cream"],
+  [class*="border-rose"],
+  [class*="border-amber"],
+  [class*="border-emerald"] {
+    border-color: #d8d4cd !important;
+  }
+  .text-ink,
+  .text-ink-muted,
+  .text-ink-dim,
+  .text-cream {
+    color: #1c1b18 !important;
+  }
+  .text-ink-muted,
+  .text-ink-dim {
+    color: #5e5b55 !important;
+  }
+  /* Avoid splitting cards across pages where possible. */
+  section,
+  article,
+  div[data-print-root] > * {
+    page-break-inside: avoid;
+  }
+  @page {
+    margin: 14mm 12mm;
+  }
+}
