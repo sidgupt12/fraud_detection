@@ -52,7 +52,7 @@ export function Hero() {
               href="#upload"
               className="group inline-flex items-center gap-2 rounded-md border border-cream/30 bg-cream/10 px-4 py-2 text-[13.5px] font-medium text-cream transition hover:bg-cream/15"
             >
-              Try it on a sample
+              Upload a filing
               <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
             </a>
             <a
@@ -100,11 +100,11 @@ function Stat({ n, l, hint }: { n: string; l: string; hint: string }) {
  */
 function HeroVisual() {
   const cards = [
-    { q: "Q1 FY24", verdict: "CLEAR", tone: "emerald" as const, fraud: "0%" },
-    { q: "Q2 FY24", verdict: "CLEAR", tone: "emerald" as const, fraud: "0%" },
-    { q: "Q3 FY24", verdict: "REVIEW", tone: "amber" as const, fraud: "6%" },
-    { q: "Q4 FY24", verdict: "ESCALATE", tone: "rose" as const, fraud: "12%" },
-    { q: "Q1 FY25", verdict: "ESCALATE", tone: "rose" as const, fraud: "18%" },
+    { q: "Q1 FY24", verdict: "CLEAR", tone: "emerald" as const, fraud: "0%", detail: "baseline · 0.181 avg" },
+    { q: "Q2 FY24", verdict: "CLEAR", tone: "emerald" as const, fraud: "0%", detail: "festival mix · 0.166 avg" },
+    { q: "Q3 FY24", verdict: "REVIEW", tone: "amber" as const, fraud: "6%", detail: "first shells" },
+    { q: "Q4 FY24", verdict: "ESCALATE", tone: "rose" as const, fraud: "12%", detail: "round-trips" },
+    { q: "Q1 FY25", verdict: "ESCALATE", tone: "rose" as const, fraud: "18%", detail: "peak risk" },
   ];
   const toneTextMap = {
     emerald: "text-emerald",
@@ -138,7 +138,7 @@ function HeroVisual() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 font-mono text-[10.5px] uppercase tracking-[0.18em] text-ink-dim">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald" />
-            Apex Retail · 5 quarters analyzed
+            Apex Retail · illustrative trajectory
           </div>
           <span className="font-mono text-[10.5px] text-ink-dim">
             cross-quarter
@@ -154,11 +154,14 @@ function HeroVisual() {
               transition={{ delay: 0.3 + i * 0.07 }}
               className={`flex items-center justify-between rounded-md border bg-bg-800/40 px-3 py-2 ${toneRingMap[c.tone]}`}
             >
-              <div className="flex items-center gap-2">
-                <span className="rounded-sm border border-line bg-bg-700 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-widest text-ink-muted">
-                  {c.q}
-                </span>
-                <span className="text-[12.5px] text-ink">2,000 txns</span>
+              <div className="flex flex-col gap-0.5">
+                <div className="flex items-center gap-2">
+                  <span className="rounded-sm border border-line bg-bg-700 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-widest text-ink-muted">
+                    {c.q}
+                  </span>
+                  <span className="text-[12.5px] text-ink">2,000 txns</span>
+                </div>
+                <span className="pl-0 font-mono text-[10px] text-ink-dim">{c.detail}</span>
               </div>
               <div className="flex items-center gap-3 font-mono text-[11px]">
                 <span className="text-ink-muted tabular-nums">

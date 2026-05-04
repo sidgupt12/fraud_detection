@@ -110,7 +110,7 @@ export function Home() {
           >
             <Hero />
             <HowItWorks />
-            <UploadSection onPick={onPick} activeId={null} />
+            <UploadSection onPick={onPick} />
             <SchemaSection />
             <About />
           </motion.div>

@@ -193,7 +193,7 @@ export function ResultsSection({ report }: Props) {
           subtitle="How the fraud signal evolved across the 5 quarterly submissions"
           right={
             <span className="font-mono text-[10.5px] uppercase tracking-widest text-ink-dim">
-              {report.id.replace("sample", "Q")} highlighted
+              {report.quarter} {report.fiscalYear} · active filing
             </span>
           }
         />

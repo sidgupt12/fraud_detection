@@ -152,7 +152,7 @@ export function ReportPage({ report, onBack }: Props) {
           className="mt-2 inline-flex items-center gap-1.5 text-[12.5px] text-ink-muted transition hover:text-ink"
         >
           <ArrowLeft className="h-3 w-3" />
-          Back to all samples
+          Back to home
         </button>
       </div>
     </motion.div>

@@ -30,15 +30,15 @@ export interface GraphDataset {
   };
 }
 
-/* -------- Q1 FY24 — CLEAR baseline (clean hub-and-spoke) -------- */
+/* -------- Q1 FY24 — CLEAR: tight two-vendor procurement, three core customers -------- */
 const sample1: GraphDataset = {
   nodes: [
     { id: "F", label: "Apex Retail", kind: "SME", risk: 0.12, x: 0.5, y: 0.5 },
-    { id: "V1", label: "Supplier A", kind: "Vendor", risk: 0.15, x: 0.18, y: 0.28 },
-    { id: "V2", label: "Supplier B", kind: "Vendor", risk: 0.16, x: 0.18, y: 0.7 },
-    { id: "C1", label: "Customer 1", kind: "Customer", risk: 0.11, x: 0.82, y: 0.25 },
-    { id: "C2", label: "Customer 2", kind: "Customer", risk: 0.13, x: 0.82, y: 0.55 },
-    { id: "C3", label: "Customer 3", kind: "Customer", risk: 0.12, x: 0.82, y: 0.82 },
+    { id: "V1", label: "Anchor Distributor – North", kind: "Vendor", risk: 0.15, x: 0.18, y: 0.28 },
+    { id: "V2", label: "Anchor Distributor – West", kind: "Vendor", risk: 0.16, x: 0.18, y: 0.7 },
+    { id: "C1", label: "Flagship Metro", kind: "Customer", risk: 0.11, x: 0.82, y: 0.25 },
+    { id: "C2", label: "Tier-1 Franchise", kind: "Customer", risk: 0.13, x: 0.82, y: 0.55 },
+    { id: "C3", label: "Modern Trade Partner", kind: "Customer", risk: 0.12, x: 0.82, y: 0.82 },
     { id: "B", label: "HDFC SME", kind: "Bank", risk: 0.07, x: 0.5, y: 0.12 },
   ],
   edges: [
@@ -58,26 +58,26 @@ const sample1: GraphDataset = {
   },
 };
 
-/* -------- Q2 FY24 — CLEAR baseline #2 -------- */
+/* -------- Q2 FY24 — CLEAR: festival / logistics churn (still acyclic) -------- */
 const sample2: GraphDataset = {
   nodes: [
-    { id: "F", label: "Apex Retail", kind: "SME", risk: 0.13, x: 0.5, y: 0.5 },
-    { id: "V1", label: "Supplier A", kind: "Vendor", risk: 0.14, x: 0.16, y: 0.3 },
-    { id: "V2", label: "Supplier B", kind: "Vendor", risk: 0.15, x: 0.16, y: 0.7 },
-    { id: "V3", label: "Supplier C", kind: "Vendor", risk: 0.16, x: 0.32, y: 0.86 },
-    { id: "C1", label: "Customer 1", kind: "Customer", risk: 0.11, x: 0.82, y: 0.22 },
-    { id: "C2", label: "Customer 2", kind: "Customer", risk: 0.12, x: 0.86, y: 0.5 },
-    { id: "C3", label: "Customer 3", kind: "Customer", risk: 0.13, x: 0.82, y: 0.78 },
+    { id: "F", label: "Apex Retail", kind: "SME", risk: 0.11, x: 0.5, y: 0.5 },
+    { id: "V1", label: "North Imports", kind: "Vendor", risk: 0.13, x: 0.14, y: 0.28 },
+    { id: "V2", label: "West Foods", kind: "Vendor", risk: 0.14, x: 0.14, y: 0.62 },
+    { id: "V3", label: "Regional Logistics", kind: "Vendor", risk: 0.18, x: 0.34, y: 0.86 },
+    { id: "C1", label: "Metro Wholesale", kind: "Customer", risk: 0.1, x: 0.84, y: 0.2 },
+    { id: "C2", label: "Institutional Buyer", kind: "Customer", risk: 0.11, x: 0.88, y: 0.48 },
+    { id: "C3", label: "Online Aggregator", kind: "Customer", risk: 0.12, x: 0.82, y: 0.78 },
     { id: "B", label: "HDFC SME", kind: "Bank", risk: 0.07, x: 0.5, y: 0.1 },
   ],
   edges: [
-    { source: "V1", target: "F", amount: "₹5,10,000", kind: "normal" },
-    { source: "V2", target: "F", amount: "₹3,80,000", kind: "normal" },
-    { source: "V3", target: "F", amount: "₹2,40,000", kind: "normal" },
-    { source: "C1", target: "F", amount: "₹15,80,000", kind: "normal" },
-    { source: "C2", target: "F", amount: "₹13,20,000", kind: "normal" },
-    { source: "C3", target: "F", amount: "₹10,40,000", kind: "normal" },
-    { source: "B", target: "F", amount: "₹50,00,000", kind: "normal" },
+    { source: "V1", target: "F", amount: "₹5,35,000", kind: "normal" },
+    { source: "V2", target: "F", amount: "₹3,95,000", kind: "normal" },
+    { source: "V3", target: "F", amount: "₹2,42,000", kind: "normal" },
+    { source: "C1", target: "F", amount: "₹16,40,000", kind: "normal" },
+    { source: "C2", target: "F", amount: "₹13,60,000", kind: "normal" },
+    { source: "C3", target: "F", amount: "₹10,55,000", kind: "normal" },
+    { source: "B", target: "F", amount: "₹52,00,000", kind: "normal" },
   ],
   meta: {
     nodeCount: 8,
