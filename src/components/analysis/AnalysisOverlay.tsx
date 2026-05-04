@@ -138,18 +138,19 @@ export function AnalysisOverlay({ report, onClose, onComplete }: Props) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-bg/80 px-4 py-6 backdrop-blur-md"
+          className="fixed inset-0 z-50 overflow-y-auto overflow-x-hidden overscroll-y-contain bg-bg/80 px-4 py-5 backdrop-blur-md sm:py-6"
           role="dialog"
           aria-modal="true"
         >
+          <div className="flex min-h-[100dvh] w-full items-center justify-center py-2 sm:py-4">
           <motion.div
             initial={{ opacity: 0, y: 24, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 12, scale: 0.98 }}
             transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-            className="relative w-full max-w-5xl overflow-hidden rounded-2xl border border-cream/20 bg-surface-elevated shadow-card"
+            className="relative my-auto flex max-h-[min(92dvh,92svh)] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-cream/20 bg-surface-elevated shadow-card"
           >
-            <div className="flex items-center justify-between border-b border-line px-5 py-3">
+            <div className="flex shrink-0 items-center justify-between border-b border-line px-5 py-3">
               <div className="flex items-center gap-3">
                 <span className="relative inline-flex h-2 w-2">
                   <span className="absolute inset-0 animate-ping rounded-full bg-cream opacity-50" />
@@ -171,6 +172,7 @@ export function AnalysisOverlay({ report, onClose, onComplete }: Props) {
               </button>
             </div>
 
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain touch-pan-y">
             <div className="grid grid-cols-1 gap-0 lg:grid-cols-[420px_1fr]">
               <div className="border-b border-line px-5 py-5 lg:border-b-0 lg:border-r">
                 <StepProgress
@@ -195,7 +197,7 @@ export function AnalysisOverlay({ report, onClose, onComplete }: Props) {
                   </span>
                 </div>
 
-                <div className="relative h-[340px] overflow-y-auto rounded-lg border border-line bg-bg-900 p-3 font-mono text-[12.5px] leading-relaxed text-ink-muted">
+                <div className="relative max-h-[min(340px,42svh)] min-h-[200px] overflow-y-auto rounded-lg border border-line bg-bg-900 p-3 font-mono text-[12.5px] leading-relaxed text-ink-muted sm:max-h-[min(340px,50svh)]">
                   <ConsoleStream steps={steps} sim={sim} />
                 </div>
 
@@ -272,7 +274,9 @@ export function AnalysisOverlay({ report, onClose, onComplete }: Props) {
                 ) : null}
               </div>
             </div>
+            </div>
           </motion.div>
+          </div>
         </motion.div>
       )}
     </AnimatePresence>

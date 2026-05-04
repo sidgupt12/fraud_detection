@@ -18,16 +18,6 @@ import {
   TriangleAlert,
   Users,
 } from "lucide-react";
-import { useMemo } from "react";
-import {
-  CartesianGrid,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip as RechartsTooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
 import { Card, CardBody, CardHeader } from "../ui/Card";
 import { Badge } from "../ui/Badge";
 import { Separator } from "../ui/Separator";
@@ -42,7 +32,7 @@ import {
   TransactionGraph,
 } from "../graph/TransactionGraph";
 import { GRAPHS } from "../../data/graphData";
-import { type FraudReport, QUARTER_TREND } from "../../data/reports";
+import { type FraudReport } from "../../data/reports";
 import { verdictColor } from "../../lib/utils";
 
 const recIconMap = {
@@ -82,10 +72,7 @@ export function ResultsSection({ report }: Props) {
         <div className="flex flex-col gap-6 px-6 py-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex min-w-0 flex-col gap-3">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="rounded border border-line bg-bg-700 px-2 py-0.5 font-mono text-[10.5px] uppercase tracking-widest text-ink-muted">
-                {report.id.toUpperCase()}
-              </span>
-              <span className="font-mono text-[11px] text-ink-dim">
+              <span className="font-mono text-[11px] text-ink">
                 {report.fileName}
               </span>
               <span className="font-mono text-[11px] text-ink-dim">·</span>
@@ -184,22 +171,6 @@ export function ResultsSection({ report }: Props) {
             hint="threshold 0.20 / 0.225"
           />
         </div>
-      </Card>
-
-      {/* ── Cross-quarter trend (always show — sets context) ───────── */}
-      <Card>
-        <CardHeader
-          title="Cross-quarter trend"
-          subtitle="How the fraud signal evolved across the 5 quarterly submissions"
-          right={
-            <span className="font-mono text-[10.5px] uppercase tracking-widest text-ink-dim">
-              {report.quarter} {report.fiscalYear} · active filing
-            </span>
-          }
-        />
-        <CardBody>
-          <CrossQuarterChart activeId={report.id} />
-        </CardBody>
       </Card>
 
       {/* ── Score breakdown + per-model ────────────────────────────── */}
@@ -377,21 +348,21 @@ export function ResultsSection({ report }: Props) {
         <Card>
           <CardHeader
             title="SHAP · feature attribution"
-            subtitle="Mean |impact| on fraud probability · cohort of 5,300 filings"
+            subtitle="Relative influence of each signal on the ensemble risk score"
             right={
               <span className="font-mono text-[10.5px] uppercase tracking-widest text-ink-dim">
-                hover for detail
+                hover rows
               </span>
             }
           />
           <CardBody>
-            <ShapChart />
+            <ShapChart reportId={report.id} />
           </CardBody>
         </Card>
         <Card>
           <CardHeader
-            title="ROC · vs four baselines"
-            subtitle="FPR vs TPR · diagonal = random classifier"
+            title="ROC · validation benchmark"
+            subtitle="False positive rate vs true positive rate"
             right={
               <span className="font-mono text-[10.5px] uppercase tracking-widest text-cream">
                 AUC 0.96
@@ -533,7 +504,7 @@ export function ResultsSection({ report }: Props) {
               href="#upload"
               className="inline-flex items-center gap-1.5 rounded-md border border-line bg-bg-700 px-3 py-1.5 font-mono text-[11.5px] uppercase tracking-widest text-ink-muted transition hover:text-ink"
             >
-              Try another quarter
+              Analyze another file
               <ArrowRight className="h-3.5 w-3.5" />
             </a>
           </div>
@@ -673,115 +644,6 @@ function PipelineStep({
         {title}
       </h4>
       <p className="mt-0.5 text-[11.5px] text-ink-muted">{body}</p>
-    </div>
-  );
-}
-
-/* ──────────────── Cross-quarter trend chart ──────────────── */
-
-function CrossQuarterChart({ activeId }: { activeId: string }) {
-  const data = useMemo(
-    () =>
-      QUARTER_TREND.map((q) => ({
-        ...q,
-        active: q.id === activeId,
-      })),
-    [activeId],
-  );
-
-  return (
-    <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_320px] lg:items-center">
-      <div className="h-[260px] w-full">
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart
-            data={data}
-            margin={{ top: 16, right: 24, left: 4, bottom: 4 }}
-          >
-            <CartesianGrid stroke="rgba(255,255,255,0.05)" strokeDasharray="3 4" vertical={false} />
-            <XAxis
-              dataKey="label"
-              stroke="#6c6862"
-              tick={{ fontSize: 11 }}
-            />
-            <YAxis
-              stroke="#6c6862"
-              domain={[0, 20]}
-              ticks={[0, 5, 10, 15, 20]}
-              tickFormatter={(v) => `${v}%`}
-              tick={{ fontSize: 11 }}
-            />
-            <RechartsTooltip
-              cursor={{ stroke: "rgba(216,196,163,0.3)" }}
-              formatter={(v) => `${Number(v ?? 0)}%`}
-            />
-            <Line
-              dataKey="fraudPct"
-              name="Fraud %"
-              stroke="#d8c4a3"
-              strokeWidth={2.4}
-              dot={(props: {
-                cx?: number;
-                cy?: number;
-                payload?: { id: string; verdict: string };
-              }) => {
-                const cx = props.cx ?? 0;
-                const cy = props.cy ?? 0;
-                const id = props.payload?.id;
-                const verdict = props.payload?.verdict;
-                const fill =
-                  verdict === "ESCALATE"
-                    ? "#d9695a"
-                    : verdict === "REVIEW"
-                      ? "#e0a050"
-                      : "#7eb27e";
-                const r = id === activeId ? 5 : 3.5;
-                return (
-                  <circle
-                    cx={cx}
-                    cy={cy}
-                    r={r}
-                    fill={fill}
-                    stroke={id === activeId ? "#d8c4a3" : "transparent"}
-                    strokeWidth={1.6}
-                  />
-                );
-              }}
-              activeDot={{ r: 5, fill: "#d8c4a3", stroke: "#0d0d0e" }}
-              isAnimationActive
-              animationDuration={1100}
-              type="monotone"
-            />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
-      <div className="space-y-1.5 font-mono text-[11.5px]">
-        {QUARTER_TREND.map((q) => {
-          const verdictTone =
-            q.verdict === "ESCALATE"
-              ? "rose"
-              : q.verdict === "REVIEW"
-                ? "amber"
-                : "emerald";
-          return (
-            <div
-              key={q.id}
-              className={`flex items-center justify-between rounded border bg-bg-800/30 px-2.5 py-1.5 ${
-                q.id === activeId
-                  ? "border-cream/40 ring-1 ring-cream/20"
-                  : "border-line"
-              }`}
-            >
-              <span className="text-ink-muted">{q.label}</span>
-              <span className="flex items-center gap-2 tabular-nums">
-                <span className="text-ink">{q.fraudPct}%</span>
-                <Badge tone={verdictTone} size="xs">
-                  {q.verdict}
-                </Badge>
-              </span>
-            </div>
-          );
-        })}
-      </div>
     </div>
   );
 }

@@ -109,7 +109,7 @@ export function ReportPage({ report, onBack }: Props) {
 
       <header className="flex flex-col gap-1">
         <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-ink-dim">
-          Audit Report · {report.id.toUpperCase()}
+          {report.fileName}
         </span>
         <h1 className="font-display text-[28px] font-semibold tracking-tight text-ink md:text-[34px]">
           {report.company}

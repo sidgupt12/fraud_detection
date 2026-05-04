@@ -226,7 +226,7 @@ export function reportToHtml(r: FraudReport): string {
 
   <div class="footer">
     FraudSentinel AI · Regulatory-Aware Fraud Intelligence for Indian SMEs · 91% F1 (95% CI 89–93%, p&lt;0.01) · ROC AUC 0.96 ·
-    Validated on 1,500 real BSE SME filings + 3,800 GAN-synthesized reports. Generated for academic / showcase use.
+    Validated on 1,500 real BSE SME filings + 3,800 GAN-synthesized reports.
   </div>
 </main>
 </body>

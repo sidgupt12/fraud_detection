@@ -482,14 +482,3 @@ export const REPORTS: FraudReport[] = [
 export function getReport(id: string): FraudReport | undefined {
   return REPORTS.find((r) => r.id === id);
 }
-
-/** Cross-quarter trend rows for the result-page summary chart. */
-export const QUARTER_TREND = REPORTS.map((r) => ({
-  id: r.id,
-  label: `${r.quarter} ${r.fiscalYear.replace("FY ", "FY")}`,
-  fraudPct: r.stats.fraudPct,
-  shellTxns: r.stats.shellTxns,
-  gstMismatches: r.stats.gstMismatches,
-  avgScore: r.stats.avgScore,
-  verdict: r.verdict,
-}));

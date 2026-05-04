@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
+import { useMemo } from "react";
 import { Tooltip } from "../ui/Tooltip";
-import { SHAP_FEATURES, type ShapFeature } from "../../data/shapData";
+import { getShapFeaturesForReport, type ShapFeature } from "../../data/shapData";
 
 const colorFor: Record<ShapFeature["category"], string> = {
   high: "#ef4444",
@@ -8,11 +9,16 @@ const colorFor: Record<ShapFeature["category"], string> = {
   low: "#10b981",
 };
 
-export function ShapChart() {
-  const max = Math.max(...SHAP_FEATURES.map((f) => f.impact));
+interface Props {
+  reportId: string;
+}
+
+export function ShapChart({ reportId }: Props) {
+  const features = useMemo(() => getShapFeaturesForReport(reportId), [reportId]);
+  const max = Math.max(...features.map((f) => f.impact));
   return (
     <div className="space-y-2.5">
-      {SHAP_FEATURES.map((f, i) => {
+      {features.map((f, i) => {
         const widthPct = (f.impact / max) * 100;
         return (
           <div key={f.feature} className="grid grid-cols-[200px_1fr_64px] items-center gap-3">
@@ -21,11 +27,11 @@ export function ShapChart() {
                 <span>
                   <span className="text-cyan">{f.feature}</span>
                   <br />
-                  This feature contributed{" "}
-                  <span className="text-amber">{f.impact.toFixed(2)}</span> to
-                  the fraud probability for this report.
-                  <br />
                   <span className="text-ink-muted">{f.description}</span>
+                  <br />
+                  <span className="mt-1 inline-block font-mono text-[11px] text-amber">
+                    |impact| {f.impact.toFixed(2)}
+                  </span>
                 </span>
               }
             >

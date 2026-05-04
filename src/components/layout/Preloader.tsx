@@ -244,7 +244,7 @@ export function Preloader({ onDone, duration = 3200 }: Props) {
               skip ›
             </button>
             <div className="absolute bottom-6 left-6 font-mono text-[10.5px] uppercase tracking-[0.2em] text-ink-dim">
-              v1.4 · academic showcase
+              v1.4
             </div>
           </motion.div>
         </motion.div>

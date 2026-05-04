@@ -28,10 +28,14 @@ export interface SimulationState {
   done: boolean;
 }
 
+/** Interval for UI updates while the tab is active (background tabs throttle this). */
+const TICK_MS = 100;
+
 /**
- * Drives a multi-step analysis animation entirely on the frontend.
- * Each step animates a progress bar from 0 → 1 over its `durationMs`,
- * progressively reveals its console lines, then advances to the next step.
+ * Drives a multi-step analysis animation on the frontend.
+ * Uses wall-clock time (performance.now), not requestAnimationFrame, so switching browser
+ * tabs does not freeze the run — timers still advance (throttled while hidden, e.g. ~1/s),
+ * and we also sync when the tab becomes visible again so state catches up instantly.
  */
 export function useAnalysisSimulation({
   steps,
@@ -43,10 +47,8 @@ export function useAnalysisSimulation({
   const [printedLines, setPrintedLines] = useState(0);
   const [done, setDone] = useState(false);
   const [totalElapsedMs, setTotalElapsedMs] = useState(0);
-  const stepStartRef = useRef<number | null>(null);
-  const startTsRef = useRef<number | null>(null);
-  const rafRef = useRef<number | null>(null);
   const onCompleteRef = useRef(onComplete);
+  const completedRef = useRef(false);
 
   useEffect(() => {
     onCompleteRef.current = onComplete;
@@ -54,56 +56,68 @@ export function useAnalysisSimulation({
 
   useEffect(() => {
     if (!start) return;
+
+    completedRef.current = false;
     setCurrentIndex(0);
     setStepProgress(0);
     setPrintedLines(0);
     setDone(false);
     setTotalElapsedMs(0);
-    stepStartRef.current = null;
-    startTsRef.current = null;
 
-    let idx = 0;
+    if (steps.length === 0) {
+      setDone(true);
+      onCompleteRef.current?.();
+      return;
+    }
 
-    const tick = (ts: number) => {
-      if (startTsRef.current == null) startTsRef.current = ts;
-      if (stepStartRef.current == null) stepStartRef.current = ts;
+    const simStart = performance.now();
 
-      const step = steps[idx];
-      if (!step) return;
-      const elapsed = ts - stepStartRef.current;
-      const total = ts - startTsRef.current;
-      const p = Math.min(1, elapsed / step.durationMs);
+    const sync = () => {
+      const now = performance.now();
+      let cursor = simStart;
 
-      setStepProgress(p);
-      setTotalElapsedMs(total);
-
-      const linesShown = Math.min(
-        step.lines.length,
-        Math.floor(p * step.lines.length) + (p > 0 ? 1 : 0),
-      );
-      setPrintedLines(linesShown);
-
-      if (p >= 1) {
-        const next = idx + 1;
-        if (next < steps.length) {
-          idx = next;
-          setCurrentIndex(next);
-          stepStartRef.current = ts;
-          setStepProgress(0);
-          setPrintedLines(0);
-          rafRef.current = requestAnimationFrame(tick);
-        } else {
-          setDone(true);
-          onCompleteRef.current?.();
+      for (let i = 0; i < steps.length; i++) {
+        const step = steps[i];
+        const end = cursor + step.durationMs;
+        if (now < end) {
+          const elapsed = now - cursor;
+          const p = Math.min(1, elapsed / step.durationMs);
+          const linesShown = Math.min(
+            step.lines.length,
+            Math.floor(p * step.lines.length) + (p > 0 ? 1 : 0),
+          );
+          setCurrentIndex(i);
+          setStepProgress(p);
+          setPrintedLines(linesShown);
+          setTotalElapsedMs(Math.max(0, now - simStart));
+          setDone(false);
+          return;
         }
-      } else {
-        rafRef.current = requestAnimationFrame(tick);
+        cursor = end;
       }
+
+      if (completedRef.current) return;
+
+      completedRef.current = true;
+      const last = steps[steps.length - 1];
+      setCurrentIndex(steps.length - 1);
+      setStepProgress(1);
+      setPrintedLines(last.lines.length);
+      setTotalElapsedMs(Math.max(0, now - simStart));
+      setDone(true);
+      onCompleteRef.current?.();
     };
 
-    rafRef.current = requestAnimationFrame(tick);
+    sync();
+    const intervalId = window.setInterval(sync, TICK_MS);
+    const onVis = () => {
+      if (document.visibilityState === "visible") sync();
+    };
+    document.addEventListener("visibilitychange", onVis);
+
     return () => {
-      if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
+      window.clearInterval(intervalId);
+      document.removeEventListener("visibilitychange", onVis);
     };
   }, [steps, start]);
 
