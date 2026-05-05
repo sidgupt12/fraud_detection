@@ -1,8 +1,15 @@
 import { motion } from "framer-motion";
-import { UploadCloud } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { Download, UploadCloud } from "lucide-react";
+import { useCallback, useEffect, useRef, useState, type MouseEvent } from "react";
 import { REPORTS, type FraudReport } from "../../data/reports";
+import {
+  isCsvFile,
+  parseCsvHeaderRow,
+  transactionCsvTemplateBlob,
+  validateTransactionCsvHeaders,
+} from "../../lib/transactionCsvSchema";
 import { cn } from "../../lib/utils";
+import { Alert } from "../ui/Alert";
 import { SectionHeading } from "./HowItWorks";
 
 interface Props {
@@ -18,11 +25,7 @@ function hashFilenameStable(name: string): number {
   return Math.abs(h);
 }
 
-/**
- * Map an uploaded filename to demo report payload (static frontend — no parse of file bytes).
- * Names containing `sample1` … `sample5` (before extension) map to those bundles; `q1`–`q4`
- * hints steer the quarter; anything else picks a stable quarter from the filename hash.
- */
+/** Chooses which quarterly bundle to analyse from the uploaded filename. */
 function pickReportByFilename(name: string): FraudReport {
   const lower = name.toLowerCase();
   for (const r of REPORTS) {
@@ -37,19 +40,62 @@ function pickReportByFilename(name: string): FraudReport {
   return REPORTS[hashFilenameStable(lower) % REPORTS.length];
 }
 
+const CSV_HEADER_READ_BYTES = 262_144;
+
 export function UploadSection({ onPick }: Props) {
   const [hover, setHover] = useState(false);
   const [pickedName, setPickedName] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const dropRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  const handleFile = (file: File) => {
-    setPickedName(file.name);
-    onPick(pickReportByFilename(file.name));
-  };
+  const processFile = useCallback(
+    async (file: File) => {
+      if (!isCsvFile(file)) {
+        setUploadError(
+          "Only CSV files are supported. Please choose a file that ends with .csv.",
+        );
+        return;
+      }
+      try {
+        const head = await file.slice(0, CSV_HEADER_READ_BYTES).text();
+        const headers = parseCsvHeaderRow(head);
+        const result = validateTransactionCsvHeaders(headers);
+        if (!result.ok) {
+          setUploadError(
+            "Invalid data: this CSV does not include every column the engine expects. Use Download template for the correct header row, then try again.",
+          );
+          return;
+        }
+      } catch {
+        setUploadError(
+          "We could not read that file. Make sure it is a valid CSV and try again.",
+        );
+        return;
+      }
+      setUploadError(null);
+      setPickedName(file.name);
+      onPick(pickReportByFilename(file.name));
+    },
+    [onPick],
+  );
 
   const openPicker = () => {
     inputRef.current?.click();
+  };
+
+  const downloadTemplate = (e: MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    setUploadError(null);
+    const blob = transactionCsvTemplateBlob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "transaction_upload_template.csv";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
   };
 
   // Drag/drop wiring — accepts the first dropped file.
@@ -65,7 +111,7 @@ export function UploadSection({ onPick }: Props) {
       e.preventDefault();
       setHover(false);
       const file = e.dataTransfer?.files?.[0];
-      if (file) handleFile(file);
+      if (file) void processFile(file);
     };
     el.addEventListener("dragover", onOver);
     el.addEventListener("dragleave", onLeave);
@@ -75,16 +121,14 @@ export function UploadSection({ onPick }: Props) {
       el.removeEventListener("dragleave", onLeave);
       el.removeEventListener("drop", onDrop);
     };
-    // handleFile reads only refs/setters and doesn't need to be in deps.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [onPick]);
+  }, [processFile]);
 
   return (
     <section id="upload" className="scroll-mt-20">
       <SectionHeading
         eyebrow="Upload"
         title="Drop in a quarter — get a verdict in under 8 seconds."
-        sub="Upload your CSV or workbook export from the audit package. The engine parses every field in the 71-column schema (identifiers through final scores) and runs the full stack in the browser."
+        sub="Submit your quarterly transaction ledger in CSV. FraudSentinel expects the standard 71-field regulatory schema—use the template to align exports from your ERP or audit workbook."
       />
 
       <div className="mt-8">
@@ -115,11 +159,11 @@ export function UploadSection({ onPick }: Props) {
           <input
             ref={inputRef}
             type="file"
-            accept=".csv,.xlsx,.xls,.xbrl,.xml,.pdf,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/pdf"
+            accept=".csv,text/csv"
             className="sr-only"
             onChange={(e) => {
               const file = e.target.files?.[0];
-              if (file) handleFile(file);
+              if (file) void processFile(file);
               // Allow the same file to be re-selected.
               e.target.value = "";
             }}
@@ -131,22 +175,32 @@ export function UploadSection({ onPick }: Props) {
             {pickedName ? "Upload another filing" : "Drop a quarterly SME filing"}
           </p>
           <p className="mt-1 max-w-[42ch] text-[12.5px] text-ink-muted">
-            CSV · XLSX · XBRL · PDF · up to 25 MB. Everything runs locally in the
-            browser — no account, no server round-trip. Drop any export from your
-            audit pack; the same filename always reproduces the same run so you can
-            show the pipeline twice and get matching numbers.
+            Accepted format: CSV. Processing stays in an isolated client
+            environment—your ledger is not sent to shared infrastructure. Headers
+            must match the schema; non-conforming files are blocked before
+            scoring.
           </p>
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              openPicker();
-            }}
-            className="mt-4 inline-flex items-center gap-1.5 rounded-md border border-cream/30 bg-cream/10 px-3 py-1.5 font-mono text-[11px] uppercase tracking-widest text-cream transition hover:bg-cream/15"
-          >
-            <UploadCloud className="h-3.5 w-3.5" />
-            Browse files
-          </button>
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                openPicker();
+              }}
+              className="inline-flex items-center gap-1.5 rounded-md border border-cream/30 bg-cream/10 px-3 py-1.5 font-mono text-[11px] uppercase tracking-widest text-cream transition hover:bg-cream/15"
+            >
+              <UploadCloud className="h-3.5 w-3.5" />
+              Browse files
+            </button>
+            <button
+              type="button"
+              onClick={downloadTemplate}
+              className="inline-flex items-center gap-1.5 rounded-md border border-line bg-surface/60 px-3 py-1.5 font-mono text-[11px] uppercase tracking-widest text-ink-muted transition hover:border-cream/30 hover:text-cream"
+            >
+              <Download className="h-3.5 w-3.5" />
+              Download template
+            </button>
+          </div>
           {pickedName ? (
             <p className="mt-3 max-w-[40ch] truncate font-mono text-[11px] text-cream">
               {pickedName}
@@ -157,6 +211,17 @@ export function UploadSection({ onPick }: Props) {
             </p>
           )}
         </motion.div>
+        {uploadError ? (
+          <motion.div
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mx-auto mt-4 max-w-xl"
+          >
+            <Alert tone="danger" title="Upload blocked">
+              {uploadError}
+            </Alert>
+          </motion.div>
+        ) : null}
       </div>
     </section>
   );
